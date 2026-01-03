@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ASR STORE | Official Store</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3577F0',    
+                        secondary: '#ff497c',  
+                        dark: '#0F0F0F',       
+                        graytext: '#52525B',
+                        light: '#F4F4F5',
+                        border: '#E4E4E7'
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #ffffff; -webkit-tap-highlight-color: transparent; font-size: 14px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* CARD POSTER STYLE */
+        .product-poster {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px;
+            aspect-ratio: 3/4;
+            background-color: #f0f0f0;
+            isolation: isolate;
+        }
+        .product-poster img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .product-poster:hover img { transform: scale(1.08); }
+        .poster-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 70%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0) 100%);
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 16px; pointer-events: none;
+        }
+
+        /* LEGAL DOCUMENTS STYLE */
+        .legal-content { font-size: 0.9rem; color: #444; line-height: 1.8; text-align: justify; }
+        .legal-content h3 { font-weight: 800; font-size: 1.1rem; color: #000; margin-top: 2.5rem; margin-bottom: 1rem; border-bottom: 2px solid #f3f3f3; padding-bottom: 0.5rem; }
+        .legal-content h4 { font-weight: 700; font-size: 0.95rem; color: #333; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+        .legal-content p { margin-bottom: 1.2rem; }
+        .legal-content ul, .legal-content ol { padding-left: 1.5rem; margin-bottom: 1.5rem; }
+        .legal-content li { margin-bottom: 0.5rem; }
+        
+        /* Detail Image */
+        .detail-image-container {
+            height: 380px; width: 100%; display: flex; align-items: center; justify-content: center; background-color: #FAFAFA;
+        }
+        .detail-image-container img { max-height: 100%; max-width: 100%; object-fit: contain; mix-blend-mode: multiply; }
+        .thumb-active { border-color: #3577F0; opacity: 1; transform: scale(0.95); }
+
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="text-dark antialiased bg-white pb-24">
+
+    <div id="app" v-cloak class="min-h-screen relative flex flex-col">
+
+        <nav v-if="['home', 'shop'].includes(currentView)" class="bg-white sticky top-0 z-40 border-b border-border shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)]">
+            <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-2 cursor-pointer" @click="changeView('home')">
+                    <img :src="settings.logo || 'logo.png'" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'" class="h-10 md:h-12 w-auto object-contain">
+                    <span class="font-black text-xl tracking-tighter hidden">ASR STORE</span> 
+                </div>
+                <div class="flex items-center gap-5">
+                    <button @click="changeView('shop')" class="text-dark hover:text-primary transition"><i class="fa-solid fa-magnifying-glass text-xl"></i></button>
+                    <button @click="toggleCart" class="relative group">
+                        <i class="fa-solid fa-bag-shopping text-2xl text-dark group-hover:text-primary transition"></i>
+                        <span v-if="cartCount > 0" class="absolute -top-1 -right-1 bg-secondary text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm">{{ cartCount }}</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <div v-if="['about', 'faq', 'terms', 'privacy', 'contact'].includes(currentView)" class="sticky top-0 bg-white border-b border-border px-4 py-3 flex items-center justify-between h-14 z-30 shadow-sm">
+            <button @click="currentView = 'menu'" class="w-10 h-10 flex items-center justify-start text-dark hover:text-primary transition z-10"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+            <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-sm uppercase tracking-widest text-dark">{{ getPageTitle(currentView) }}</span>
+            <div class="w-10"></div>
+        </div>
+
+        <main class="flex-grow">
+            
+            <div v-if="currentView === 'home'" class="animate-fade-in">
+                <div class="container mx-auto px-4 py-6">
+                    <div class="bg-dark rounded-3xl p-8 mb-10 text-white relative overflow-hidden min-h-[320px] flex items-end shadow-2xl group cursor-pointer" @click="changeView('shop')">
+                        <div class="relative z-10 w-full md:w-2/3">
+                            <span class="bg-white/20 backdrop-blur px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-[0.2em] mb-4 inline-block border border-white/20">Official Store</span>
+                            <h1 class="text-4xl md:text-6xl font-black mb-4 leading-tight tracking-tight">The Future of <br>Lifestyle.</h1>
+                            <p class="text-sm text-gray-300 mb-8 max-w-sm leading-relaxed">Upgrade gaya Anda dengan koleksi eksklusif dan original yang dikurasi khusus untuk Anda.</p>
+                            <button class="bg-white text-dark px-8 py-3.5 rounded-full font-bold text-sm hover:bg-gray-100 transition shadow-lg transform hover:-translate-y-1">Belanja Sekarang</button>
+                        </div>
+                        <div class="absolute inset-0 z-0">
+                             <img :src="settings.heroImage || (latestProduct ? latestProduct.image : 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800')" class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition duration-[2s]">
+                             <div class="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-10">
+                        <div class="flex justify-between items-end mb-5 px-1">
+                            <h2 class="font-bold text-xl text-dark tracking-tight">Kategori Pilihan</h2>
+                            <button @click="changeView('shop')" class="text-primary text-xs font-bold hover:underline">Lihat Semua</button>
+                        </div>
+                        <div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                            <div v-for="(cat, i) in categories" :key="i" @click="filterByCategory(cat)" 
+                                 class="flex-shrink-0 bg-white border border-border px-6 py-3 rounded-2xl cursor-pointer hover:bg-dark hover:text-white hover:border-dark transition shadow-sm group">
+                                <span class="text-xs font-bold whitespace-nowrap">{{ cat }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-8">
+                        <h2 class="font-bold text-xl text-dark mb-6 px-1 tracking-tight">Rekomendasi Terbaru</h2>
+                        <div v-if="loading" class="grid grid-cols-2 gap-4"><div v-for="n in 4" class="bg-gray-100 aspect-[3/4] rounded-2xl animate-pulse"></div></div>
+                        <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div v-for="product in filteredProducts.slice(0, 8)" :key="product.id" @click="viewProduct(product)"
+                                 class="product-poster group cursor-pointer shadow-lg hover:shadow-2xl transition-all duration-300">
+                                <img :src="product.image" class="group-hover:scale-110 transition duration-700">
+                                <div v-if="product.discount > 0" class="absolute top-3 left-3 bg-white/90 backdrop-blur text-dark text-[10px] font-black px-2.5 py-1 rounded-lg z-10 shadow-sm">-{{ product.discount }}%</div>
+                                <div class="poster-overlay">
+                                    <span class="text-[10px] text-gray-300 uppercase tracking-widest mb-1">{{ product.category }}</span>
+                                    <h3 class="font-bold text-white text-base leading-tight mb-2 truncate w-full">{{ product.name }}</h3>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-white font-bold text-lg">Rp {{ format(product.price) }}</span>
+                                        <span v-if="product.discount > 0" class="text-white/60 text-[10px] line-through decoration-white/50">{{ format(product.originalPrice) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="currentView === 'shop'" class="container mx-auto px-4 py-4 pb-24">
+                <div class="sticky top-14 bg-white z-30 py-2 mb-4">
+                    <div class="relative">
+                        <input v-model="searchQuery" placeholder="Cari produk yang Anda inginkan..." class="w-full bg-light border-none rounded-2xl px-5 py-3.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 pl-11 transition-all placeholder:text-gray-400 font-medium">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-4 text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div v-for="product in filteredProducts" :key="product.id" @click="viewProduct(product)" class="product-poster group cursor-pointer shadow-md">
+                        <img :src="product.image" class="group-hover:scale-110 transition duration-700">
+                        <div class="poster-overlay">
+                            <h3 class="font-bold text-white text-sm leading-tight mb-1 truncate">{{ product.name }}</h3>
+                            <span class="text-white font-bold text-sm">Rp {{ format(product.price) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="currentView === 'menu'" class="container mx-auto px-4 py-8">
+                <div class="bg-dark rounded-3xl p-8 text-white mb-8 shadow-2xl relative overflow-hidden">
+                    <div class="relative z-10 flex flex-col items-center text-center">
+                        <div class="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mb-4 shadow-lg p-2">
+                            <img :src="settings.logo || 'logo.png'" onerror="this.style.display='none'; this.parentNode.innerHTML='<span class=\'text-dark font-bold text-3xl\'>A</span>'" class="w-full h-full object-contain">
+                        </div>
+                        <h2 class="font-black text-2xl tracking-tight mb-1">ASR STORE</h2>
+                        <p class="text-sm text-gray-400 font-medium">Official Verified Merchant &bull; Since 2023</p>
+                    </div>
+                    <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
+                    <div class="absolute -top-10 -left-10 w-48 h-48 bg-primary/20 rounded-full blur-3xl"></div>
+                </div>
+
+                <div class="space-y-4 max-w-lg mx-auto">
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2">Pusat Informasi</div>
+                    <button @click="changeView('about')" class="w-full bg-white border border-border rounded-2xl p-5 flex items-center justify-between hover:bg-light transition group shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 text-primary flex items-center justify-center"><i class="fa-solid fa-store"></i></div>
+                            <span class="font-bold text-sm text-dark">Tentang Kami</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-300 group-hover:text-dark transition"></i>
+                    </button>
+                    <button @click="changeView('faq')" class="w-full bg-white border border-border rounded-2xl p-5 flex items-center justify-between hover:bg-light transition group shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center"><i class="fa-solid fa-circle-question"></i></div>
+                            <span class="font-bold text-sm text-dark">Pusat Bantuan (FAQ)</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-300 group-hover:text-dark transition"></i>
+                    </button>
+                    <button @click="changeView('contact')" class="w-full bg-white border border-border rounded-2xl p-5 flex items-center justify-between hover:bg-light transition group shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-green-50 text-green-500 flex items-center justify-center"><i class="fa-brands fa-whatsapp text-lg"></i></div>
+                            <span class="font-bold text-sm text-dark">Hubungi Kami</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-300 group-hover:text-dark transition"></i>
+                    </button>
+                    
+                    <div class="h-2"></div>
+                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2">Dokumen Legal</div>
+                    
+                    <button @click="changeView('terms')" class="w-full bg-white border border-border rounded-2xl p-5 flex items-center justify-between hover:bg-light transition group shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center"><i class="fa-solid fa-file-contract"></i></div>
+                            <span class="font-bold text-sm text-dark">Syarat & Ketentuan</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-300 group-hover:text-dark transition"></i>
+                    </button>
+                    <button @click="changeView('privacy')" class="w-full bg-white border border-border rounded-2xl p-5 flex items-center justify-between hover:bg-light transition group shadow-sm">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center"><i class="fa-solid fa-shield-halved"></i></div>
+                            <span class="font-bold text-sm text-dark">Kebijakan Privasi</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-gray-300 group-hover:text-dark transition"></i>
+                    </button>
+                </div>
+                <div class="mt-12 text-center pb-8"><p class="text-[10px] text-gray-300 mt-2">&copy; 2026 ASR STORE. All Rights Reserved.</p></div>
+            </div>
+
+            <div v-if="currentView === 'contact'" class="container mx-auto px-4 py-6">
+                <div class="bg-white border border-border rounded-3xl p-8 shadow-xl text-center mb-8">
+                    <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner"><i class="fa-brands fa-whatsapp"></i></div>
+                    <h2 class="font-black text-2xl text-dark mb-2">Layanan Pelanggan</h2>
+                    <p class="text-sm text-gray-500 mb-8 px-4 leading-relaxed">Tim support kami siap membantu segala pertanyaan, komplain, atau kendala pesanan Anda. Kami online setiap hari.</p>
+                    
+                    <div class="grid grid-cols-2 gap-4 mb-8">
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                            <div class="text-xs text-gray-400 font-bold uppercase mb-1">Jam Operasional</div>
+                            <div class="text-sm font-bold text-dark">09.00 - 21.00 WIB</div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                            <div class="text-xs text-gray-400 font-bold uppercase mb-1">Rata-rata Respon</div>
+                            <div class="text-sm font-bold text-dark">± 5 Menit</div>
+                        </div>
+                    </div>
+
+                    <a href="https://wa.me/6285892767032" class="block w-full bg-green-600 text-white py-4 rounded-xl font-bold text-sm shadow-xl shadow-green-600/30 hover:bg-green-700 transition transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fa-regular fa-comment-dots text-lg"></i> Chat Admin Sekarang
+                    </a>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="">
+                        <div class=""><i class="></i></div>
+                        <div>
+                            <h4 class="font-bold text-sm text-dark mb-1"></h4>
+                        </div>
+                    </div>
+                    <div class="">
+                        <div class=""><i class=""></i></div>
+                        <div>
+                            <h4 class="font-bold text-sm text-dark mb-1"></h4>
+                            <p class="text-xs text-gray-500"></p>
+                            <p class="text-xs text-gray-500"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="currentView === 'faq'" class="container mx-auto px-4 py-6">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl font-black text-dark mb-2">Pusat Bantuan</h2>
+                    <p class="text-sm text-gray-500">Temukan jawaban atas pertanyaan Anda disini.</p>
+                </div>
+
+                <div class="space-y-3">
+                    <div v-for="(item, idx) in faqItems" :key="idx" class="border border-border rounded-xl bg-white overflow-hidden shadow-sm hover:shadow-md transition">
+                        <button @click="item.open = !item.open" class="w-full px-5 py-5 flex justify-between items-center text-left bg-white hover:bg-gray-50 transition">
+                            <span class="font-bold text-sm text-dark pr-4">{{ item.q }}</span>
+                            <div class="w-6 h-6 rounded-full bg-light flex items-center justify-center flex-shrink-0">
+                                <i :class="item.open ? 'fa-minus text-primary' : 'fa-plus text-gray-400'" class="text-xs transition-transform duration-300"></i>
+                            </div>
+                        </button>
+                        <div v-if="item.open" class="px-5 pb-6 pt-0 text-sm text-gray-600 leading-relaxed bg-white text-justify border-t border-dashed border-gray-100 mt-2">
+                            <div class="pt-4">{{ item.a }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 bg-blue-50 p-6 rounded-2xl text-center border border-blue-100">
+                    <p class="text-sm font-bold text-blue-800 mb-1">Pertanyaan belum terjawab?</p>
+                    <p class="text-xs text-blue-600 mb-4">Jangan ragu untuk bertanya langsung kepada kami.</p>
+                    <button @click="changeView('contact')" class="text-xs font-bold bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">Hubungi Kami</button>
+                </div>
+            </div>
+
+            <div v-if="currentView === 'about'" class="container mx-auto px-4 py-6 max-w-2xl">
+                <div class="w-full aspect-video bg-gray-100 rounded-2xl mb-8 overflow-hidden shadow-md border border-border">
+                     <img :src="settings.aboutImage || 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=800'" class="w-full h-full object-cover"> 
+                </div>
+
+                <div class="legal-content">
+                    <p class="font-medium text-lg text-dark mb-6">Selamat datang di ASR STORE, destinasi belanja online terpercaya pilihan keluarga Indonesia.</p>
+                    <p>Didirikan pada tahun 2023, ASR STORE bermula dari visi sederhana: menghadirkan produk berkualitas premium dengan akses yang mudah dan aman bagi semua orang. Kami memahami bahwa berbelanja online bukan hanya sekadar transaksi, melainkan sebuah pengalaman.</p>
+                    <h3>Komitmen Kami</h3>
+                    <p>Kami berdedikasi untuk hanya menyediakan produk yang <strong>100% Original</strong>. Tim kami bekerja sama secara langsung dengan distributor resmi dan pemilik merek untuk memastikan setiap barang yang Anda terima adalah asli dan dalam kondisi terbaik.</p>
+                    <h3>Mengapa Memilih ASR STORE?</h3>
+                    <ul>
+                        <li><strong>Kualitas Terjamin:</strong> Proses Quality Control (QC) rangkap tiga sebelum pengiriman.</li>
+                        <li><strong>Pelayanan Personal:</strong> Kami bukan robot. Tim Customer Service kami siap membantu Anda layaknya asisten pribadi via WhatsApp.</li>
+                        <li><strong>Keamanan Transaksi:</strong> Metode pembayaran yang transparan dan aman.</li>
+                    </ul>
+                    <p>Terima kasih telah mempercayakan kebutuhan gaya hidup Anda kepada kami. Selamat berbelanja!</p>
+                </div>
+            </div>
+
+            <div v-if="currentView === 'terms'" class="container mx-auto px-4 py-6 max-w-2xl legal-content">
+                <p><strong>Terakhir diperbarui: 3 Januari 2026</strong></p>
+                <p>Harap membaca Syarat dan Ketentuan ini dengan seksama sebelum menggunakan layanan ASR STORE. Dengan mengakses atau menggunakan layanan kami, Anda setuju untuk terikat oleh ketentuan ini.</p>
+
+                <h3>1. Definisi</h3>
+                <p>"Kami" merujuk pada ASR STORE sebagai penyedia layanan. "Anda" merujuk pada pengguna atau pembeli. "Produk" adalah barang fisik yang dijual melalui platform ini.</p>
+
+                <h3>2. Pemesanan Barang</h3>
+                <ul>
+                    <li>Pemesanan dilakukan dengan memilih produk dan menyelesaikan proses checkout yang diarahkan ke WhatsApp resmi kami.</li>
+                    <li>Harga yang tertera adalah harga final produk, namun belum termasuk ongkos kirim (kecuali ada promo tertentu).</li>
+                    <li>Kami berhak menolak pesanan jika stok habis, terdapat kesalahan harga sistem, atau terdapat indikasi penyalahgunaan layanan.</li>
+                </ul>
+
+                <h3>3. Pembayaran</h3>
+                <p>Pembayaran wajib dilakukan dalam waktu 1x24 jam setelah admin memberikan total tagihan dan nomor rekening resmi. Keterlambatan pembayaran dapat mengakibatkan pembatalan pesanan secara otomatis oleh sistem kami.</p>
+
+                <h3>4. Pengiriman & Risiko</h3>
+                <p>Barang akan diserahkan ke pihak ekspedisi (JNE/J&T/SiCepat) maksimal 24 jam setelah pembayaran diverifikasi (hari kerja). Risiko kerusakan atau kehilangan barang selama proses pengiriman oleh ekspedisi berada di luar tanggung jawab ASR STORE, namun kami akan membantu proses klaim asuransi jika Anda memilih opsi asuransi pengiriman.</p>
+
+                <h3>5. Kebijakan Pengembalian (Retur)</h3>
+                <p>Kami menerima retur hanya jika: (a) Barang yang diterima salah/tidak sesuai pesanan, atau (b) Barang cacat produksi mayor. Syarat wajib klaim adalah menyertakan <strong>Video Unboxing</strong> tanpa jeda/cut mulai dari paket utuh hingga dibuka. Klaim tanpa video tidak akan dilayani dengan alasan apapun.</p>
+            </div>
+
+            <div v-if="currentView === 'privacy'" class="container mx-auto px-4 py-6 max-w-2xl legal-content">
+                <p>ASR STORE sangat menghormati privasi data pribadi Anda. Kebijakan ini menjelaskan secara rinci bagaimana kami mengumpulkan, menggunakan, dan melindungi data pribadi Anda.</p>
+
+                <h3>1. Informasi yang Kami Kumpulkan</h3>
+                <p>Saat Anda melakukan pemesanan, kami akan meminta data berupa: Nama Lengkap, Alamat Pengiriman Lengkap (termasuk kode pos), Nomor Telepon (WhatsApp), dan bukti pembayaran. Data ini diperlukan semata-mata untuk memproses, memverifikasi, dan mengirimkan pesanan Anda.</p>
+
+                <h3>2. Penggunaan Informasi</h3>
+                <p>Informasi Anda digunakan untuk:</p>
+                <ul>
+                    <li>Memproses dan mengkonfirmasi pesanan secara akurat.</li>
+                    <li>Menghubungi Anda terkait status pengiriman atau kendala stok.</li>
+                    <li>Keperluan internal administrasi, pembukuan toko, dan analisis pasar.</li>
+                    <li>Mengirimkan informasi promo spesial (hanya jika Anda menyetujuinya).</li>
+                </ul>
+
+                <h3>3. Perlindungan & Keamanan Data</h3>
+                <p>Kami menerapkan standar keamanan teknis untuk melindungi data Anda. Kami tidak akan pernah menjual, menyewakan, atau membagikan data pribadi Anda kepada pihak ketiga (seperti telemarketer) tanpa persetujuan Anda, kecuali kepada mitra logistik (kurir) untuk keperluan pengiriman paket sampai ke tujuan.</p>
+
+                <h3>4. Hak Pengguna</h3>
+                <p>Anda berhak meminta kami untuk menghapus data riwayat pesanan Anda dari database kami setelah transaksi selesai sepenuhnya, dengan menghubungi admin kami melalui kontak resmi.</p>
+            </div>
+
+            <div v-if="currentView === 'product' && selectedProduct" class="fixed inset-0 bg-white z-[60] flex flex-col animate-fade-in">
+                
+                <div class="relative bg-white border-b border-border px-4 py-3 flex items-center justify-between flex-shrink-0 h-16 z-30">
+                    <button @click="currentView = 'shop'" class="w-10 h-10 flex items-center justify-start text-dark hover:text-primary transition z-10"><i class="fa-solid fa-arrow-left text-xl"></i></button>
+                    <span class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 font-bold text-sm uppercase tracking-widest text-dark">Detail Produk</span>
+                    <button @click="toggleCart" class="relative w-10 h-10 flex items-center justify-end z-10">
+                        <i class="fa-solid fa-bag-shopping text-xl"></i>
+                        <span v-if="cartCount > 0" class="absolute top-1 right-0 bg-secondary text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white">{{ cartCount }}</span>
+                    </button>
+                </div>
+
+                <div class="flex-grow overflow-y-auto bg-white">
+                    <div class="container mx-auto max-w-3xl pb-28">
+                        <div class="bg-[#FAFAFA] pb-8 pt-4 rounded-b-[2rem] shadow-inner mb-6">
+                            <div class="detail-image-container">
+                                <img :src="activeImage" class="animate-fade-in">
+                            </div>
+                            <div v-if="selectedProduct.images.length > 1" class="flex gap-3 overflow-x-auto no-scrollbar justify-center px-4 mt-6">
+                                <div v-for="img in selectedProduct.images" :key="img" @click="activeImage = img"
+                                     :class="['w-16 h-16 rounded-xl border-2 cursor-pointer p-1 bg-white transition shadow-sm', activeImage === img ? 'thumb-active' : 'thumb-inactive']">
+                                    <img :src="img" class="w-full h-full object-cover rounded-lg">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="px-6">
+                            <div class="border-b border-border pb-6 mb-6">
+                                <h1 class="text-2xl font-black text-dark mb-3 leading-snug">{{ selectedProduct.name }}</h1>
+                                <div class="flex justify-between items-end">
+                                    <div>
+                                        <div class="text-3xl font-black text-primary">Rp {{ format(selectedProduct.price) }}</div>
+                                        <div v-if="selectedProduct.discount > 0" class="text-gray-400 text-sm line-through mt-1">Rp {{ format(selectedProduct.originalPrice) }}</div>
+                                    </div>
+                                    <div class="bg-dark text-white px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide">
+                                        Stok: {{ selectedProduct.stok }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-6 mb-8">
+                                <div v-if="selectedProduct.colors.length">
+                                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-3">Pilih Warna</span>
+                                    <div class="flex flex-wrap gap-3">
+                                        <button v-for="c in selectedProduct.colors" @click="detailForm.color = c" :class="detailForm.color === c ? 'bg-dark text-white border-dark ring-2 ring-offset-2 ring-gray-200' : 'bg-white text-gray-600 border-border hover:border-gray-400'" class="px-5 py-2.5 rounded-xl text-sm font-bold border transition min-w-[4rem]">{{ c }}</button>
+                                    </div>
+                                </div>
+                                <div v-if="selectedProduct.sizes.length">
+                                    <span class="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-3">Pilih Ukuran</span>
+                                    <div class="flex flex-wrap gap-3">
+                                        <button v-for="s in selectedProduct.sizes" @click="detailForm.size = s" :class="detailForm.size === s ? 'bg-primary text-white border-primary ring-2 ring-offset-2 ring-blue-100' : 'bg-white text-gray-600 border-border hover:border-gray-400'" class="w-12 h-12 rounded-xl flex items-center justify-center text-sm font-bold border transition">{{ s }}</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 rounded-2xl p-6 border border-border">
+                                <h3 class="font-bold text-sm mb-3 text-dark uppercase tracking-widest flex items-center gap-2"><i class="fa-solid fa-align-left text-primary"></i> Deskripsi Produk</h3>
+                                <p class="text-sm text-gray-600 leading-relaxed whitespace-pre-line text-justify">{{ selectedProduct.description }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-border p-4 bg-white fixed bottom-0 left-0 w-full z-50 md:static md:border-0 md:p-0 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+                    <div class="container mx-auto max-w-3xl flex gap-4">
+                        <div class="flex items-center border border-border rounded-2xl h-14 bg-white w-auto px-2">
+                            <button @click="detailForm.qty > 1 ? detailForm.qty-- : null" class="w-10 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 rounded-l-xl transition"><i class="fa-solid fa-minus text-xs"></i></button>
+                            <input readonly v-model="detailForm.qty" class="w-10 h-full text-center font-bold text-base bg-transparent outline-none border-x border-transparent text-dark">
+                            <button @click="detailForm.qty < selectedProduct.stok ? detailForm.qty++ : null" class="w-10 h-full flex items-center justify-center text-gray-500 hover:bg-gray-50 rounded-r-xl transition"><i class="fa-solid fa-plus text-xs"></i></button>
+                        </div>
+                        <button @click="addToCartFromDetail" class="flex-1 bg-dark text-white rounded-2xl h-14 font-bold text-sm shadow-xl shadow-gray-200 active:scale-95 transition flex items-center justify-center gap-3">
+                            <span class="text-base">+ Keranjang</span>
+                            <span class="opacity-30">|</span>
+                            <span class="opacity-90 font-mono">Rp {{ format(selectedProduct.price * detailForm.qty) }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-border flex justify-around items-center py-3 z-30 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+            <button @click="changeView('home')" :class="currentView === 'home' ? 'text-primary' : 'text-gray-400'" class="flex flex-col items-center p-1 w-16 transition"><i class="fa-solid fa-house text-xl mb-1"></i><span class="text-[10px] font-bold">Beranda</span></button>
+            <button @click="changeView('shop')" :class="currentView === 'shop' ? 'text-primary' : 'text-gray-400'" class="flex flex-col items-center p-1 w-16 transition"><i class="fa-solid fa-bag-shopping text-xl mb-1"></i><span class="text-[10px] font-bold">Produk</span></button>
+            <button @click="toggleCart" class="flex flex-col items-center p-1 w-16 text-gray-400 relative transition"><div class="relative"><i class="fa-solid fa-cart-shopping text-xl mb-1"></i><span v-if="cartCount > 0" class="absolute -top-1.5 -right-1.5 bg-secondary text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white">{{ cartCount }}</span></div><span class="text-[10px] font-bold">Keranjang</span></button>
+            <button @click="changeView('menu')" :class="['menu','about','faq','terms','privacy','contact'].includes(currentView) ? 'text-primary' : 'text-gray-400'" class="flex flex-col items-center p-1 w-16 transition"><i class="fa-solid fa-bars text-xl mb-1"></i><span class="text-[10px] font-bold">Menu</span></button>
+        </div>
+
+        <div v-if="isCartOpen" class="fixed inset-0 z-[100] flex justify-end">
+            <div class="absolute inset-0 bg-dark/60 backdrop-blur-sm transition-opacity" @click="toggleCart"></div>
+            <div class="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col transform transition-transform duration-300">
+                <div class="p-6 border-b border-border flex justify-between items-center bg-white"><h2 class="font-bold text-lg text-dark tracking-tight">Keranjang Belanja</h2><button @click="toggleCart" class="text-gray-400 hover:text-dark transition"><i class="fa-solid fa-xmark text-xl"></i></button></div>
+                <div class="flex-1 overflow-y-auto p-6 space-y-4 bg-light">
+                    <div v-if="cart.length === 0" class="flex flex-col items-center justify-center h-64 text-gray-400"><i class="fa-solid fa-basket-shopping text-5xl mb-4 opacity-20"></i><p class="text-sm font-bold">Keranjang Anda kosong</p></div>
+                    <div v-for="(item, idx) in cart" :key="idx" class="bg-white p-4 rounded-2xl flex gap-4 shadow-sm border border-transparent hover:border-border transition">
+                        <div class="w-20 h-20 bg-light rounded-xl flex-shrink-0"><img :src="item.image" class="w-full h-full object-contain mix-blend-multiply"></div>
+                        <div class="flex-1 min-w-0 flex flex-col justify-between">
+                            <div>
+                                <h4 class="font-bold text-sm truncate text-dark mb-1">{{ item.name }}</h4>
+                                <p class="text-[10px] text-gray-500 bg-light inline-block px-2 py-0.5 rounded border border-border">{{ item.color }} / {{ item.size }}</p>
+                            </div>
+                            <div class="flex justify-between items-center mt-2">
+                                <span class="text-primary font-bold text-sm">Rp {{ format(item.price * item.qty) }}</span>
+                                <div class="flex items-center bg-light rounded-lg h-7 border border-border"><button @click="item.qty > 1 ? item.qty-- : removeFromCart(idx)" class="w-7 font-bold text-xs text-gray-500 hover:text-dark">-</button><span class="text-xs font-bold w-6 text-center text-dark">{{ item.qty }}</span><button @click="item.qty++" class="w-7 font-bold text-xs text-gray-500 hover:text-dark">+</button></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-6 bg-white border-t border-border shadow-[0_-5px_30px_rgba(0,0,0,0.05)]">
+                    <div class="flex justify-between mb-6"><span class="text-sm font-bold text-gray-500">Total Tagihan</span><span class="text-xl font-black text-primary">Rp {{ format(cartTotal) }}</span></div>
+                    <div class="space-y-4">
+                        <input v-model="customer.name" placeholder="Nama Penerima" class="w-full bg-light border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm outline-none focus:border-dark transition font-medium">
+                        <textarea v-model="customer.address" placeholder="Alamat Lengkap Pengiriman" class="w-full bg-light border-2 border-transparent rounded-2xl px-5 py-3.5 text-sm outline-none h-24 resize-none focus:border-dark transition font-medium"></textarea>
+                        <button @click="processCheckout" :disabled="isProcessing || !customer.name || !customer.address" class="w-full bg-dark text-white py-4 rounded-2xl font-bold text-sm shadow-xl hover:bg-black disabled:bg-gray-300 disabled:shadow-none transition flex items-center justify-center gap-2">
+                            <span v-if="isProcessing"><i class="fa-solid fa-circle-notch fa-spin"></i> Memproses...</span>
+                            <span v-else><i class="fa-brands fa-whatsapp text-lg"></i> Checkout via WhatsApp</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="toast.show" class="fixed top-24 left-1/2 -translate-x-1/2 bg-dark/90 backdrop-blur-md text-white px-6 py-3 rounded-full shadow-2xl z-[200] text-sm font-bold animate-bounce flex items-center gap-3">
+            <i class="fa-solid fa-circle-check text-green-400 text-lg"></i> {{ toast.message }}
+        </div>
+    </div>
+
+    <script type="module">
+        import { createApp, ref, computed, onMounted, reactive, watch } from 'https://unpkg.com/vue@3/dist/vue.esm-browser.prod.js';
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getFirestore, collection, onSnapshot, query, orderBy, getDoc, doc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+        // CONFIG
+        const firebaseConfig = { apiKey: "AIzaSyC131UjEYgOY4MFOOgPXdTSm07TpGWFraE", authDomain: "asr-id.firebaseapp.com", projectId: "asr-id", storageBucket: "asr-id.firebasestorage.app", messagingSenderId: "327137445466", appId: "1:327137445466:web:54a191beedbb06b1fa7a63" };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // MOCK DATA (FALLBACK JIKA FIREBASE GAGAL/OFFLINE)
+        const mockProducts = [
+            { id: '1', name: 'Premium Oversized T-Shirt', category: 'Fashion', price: 150000, originalPrice: 200000, discount: 25, stok: 50, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=800', colors: ['Hitam','Putih'], sizes: ['M','L','XL'], description: 'Bahan Cotton Combed 24s premium yang sejuk dan nyaman dipakai sehari-hari.' },
+            { id: '2', name: 'Wireless Headphones Pro', category: 'Gadget', price: 450000, originalPrice: 600000, discount: 25, stok: 20, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800', colors: ['Hitam','Silver'], sizes: [], description: 'Suara jernih dengan fitur Noise Cancelling.' },
+            { id: '3', name: 'Sneakers Urban Low', category: 'Sepatu', price: 350000, originalPrice: 350000, discount: 0, stok: 15, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800', colors: ['Merah','Biru'], sizes: ['40','41','42'], description: 'Desain sporty dan ringan.' }
+        ];
+
+        createApp({
+            setup() {
+                const currentView = ref('home');
+                const loading = ref(true);
+                const isCartOpen = ref(false);
+                const isProcessing = ref(false);
+                const products = ref([]);
+                const cart = ref([]);
+                const searchQuery = ref('');
+                const selectedCategory = ref('');
+                const selectedProduct = ref(null);
+                const activeImage = ref('');
+                const detailForm = reactive({ qty: 1, color: '', size: '' });
+                const customer = reactive({ name: '', address: '' });
+                const toast = reactive({ show: false, message: '' });
+                const settings = reactive({ logo: '', heroImage: '', aboutImage: '' });
+
+                const faqItems = reactive([
+                    { q: "Bagaimana cara melakukan pemesanan?", a: "Pilih produk yang Anda inginkan, tentukan varian (warna/ukuran), lalu klik tombol 'Keranjang'. Setelah selesai memilih, buka ikon keranjang, isi data diri dan alamat lengkap, kemudian klik 'Checkout WhatsApp'. Anda akan diarahkan ke chat WhatsApp admin kami untuk konfirmasi total dan pembayaran.", open: false },
+                    { q: "Apakah produk yang dijual Original?", a: "Ya, ASR STORE menjamin 100% keaslian seluruh produk yang kami jual. Kami bekerja sama langsung dengan distributor resmi dan brand principal. Jika terbukti palsu, kami memberikan garansi uang kembali 100%.", open: false },
+                    { q: "Apa saja metode pembayaran yang tersedia?", a: "Kami menerima pembayaran melalui Transfer Bank (BCA, Mandiri, BNI, BRI) dan E-Wallet (GoPay, OVO, Dana, ShopeePay). Instruksi pembayaran akan diberikan oleh admin saat konfirmasi pesanan di WhatsApp.", open: false },
+                    { q: "Berapa lama proses pengiriman?", a: "Pesanan yang terkonfirmasi sebelum pukul 15.00 WIB akan dikirim di hari yang sama. Estimasi pengiriman untuk wilayah Jabodetabek adalah 1-2 hari kerja, sedangkan untuk luar Jabodetabek 2-4 hari kerja tergantung lokasi.", open: false },
+                    { q: "Apakah bisa retur atau tukar barang?", a: "Bisa, dengan syarat wajib menyertakan video unboxing tanpa jeda saat paket dibuka. Retur hanya berlaku untuk cacat produksi atau kesalahan pengiriman dari pihak kami. Maksimal klaim 1x24 jam setelah barang diterima.", open: false }
+                ]);
+
+                const latestProduct = computed(() => products.value[0]);
+                const categories = computed(() => [...new Set(products.value.map(p=>p.category))]);
+                const cartCount = computed(() => cart.value.reduce((a,b)=>a+b.qty,0));
+                const cartTotal = computed(() => cart.value.reduce((a,b)=>a+(b.price*b.qty),0));
+                const format = (v) => new Intl.NumberFormat('id-ID').format(v);
+
+                const getPageTitle = (view) => ({ 'about': 'Tentang Kami', 'faq': 'Pusat Bantuan', 'terms': 'Syarat & Ketentuan', 'privacy': 'Kebijakan Privasi', 'contact': 'Hubungi Kami', 'menu': 'Menu Utama' }[view] || 'Informasi');
+
+                onMounted(() => {
+                    const saved = localStorage.getItem('asr_cart');
+                    if(saved) cart.value = JSON.parse(saved);
+                    fetchProducts();
+                    fetchSettings();
+                });
+                
+                watch(cart, (n) => localStorage.setItem('asr_cart', JSON.stringify(n)), {deep:true});
+
+                const fetchSettings = async () => {
+                    try {
+                        const docSnap = await getDoc(doc(db, "settings", "global"));
+                        if(docSnap.exists()) Object.assign(settings, docSnap.data());
+                    } catch(e) { console.log("Mode Offline: Gagal muat setting"); }
+                };
+
+                const fetchProducts = () => {
+                    try {
+                        const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+                        onSnapshot(q, (snap) => {
+                            if(snap.empty) { products.value = mockProducts; } // Fallback jika kosong
+                            else {
+                                products.value = snap.docs.map(doc => {
+                                    const d = doc.data();
+                                    const p = Number(d.price);
+                                    const disc = Number(d.discount)||0;
+                                    return {
+                                        id: doc.id,
+                                        name: d.name,
+                                        category: d.category||'Umum',
+                                        price: p - (p*(disc/100)),
+                                        originalPrice: p,
+                                        discount: disc,
+                                        stok: Number(d.stok),
+                                        image: d.image,
+                                        images: (d.gallery && d.gallery.length > 0) ? d.gallery : [d.image],
+                                        colors: d.colors||[],
+                                        sizes: d.sizes||[],
+                                        description: d.description||"Deskripsi produk sedang diperbarui oleh tim kami."
+                                    };
+                                });
+                            }
+                            loading.value = false;
+                        }, (err) => {
+                            console.log("Mode Offline Aktif");
+                            products.value = mockProducts; // Fallback Error
+                            loading.value = false;
+                        });
+                    } catch(e){ 
+                        products.value = mockProducts; 
+                        loading.value = false; 
+                    }
+                };
+
+                const filteredProducts = computed(() => {
+                    let r = products.value;
+                    if(searchQuery.value) r = r.filter(p=>p.name.toLowerCase().includes(searchQuery.value.toLowerCase()));
+                    if(selectedCategory.value) r = r.filter(p=>p.category === selectedCategory.value);
+                    return r;
+                });
+
+                const viewProduct = (p) => {
+                    selectedProduct.value = p;
+                    activeImage.value = p.images ? p.images[0] : p.image;
+                    detailForm.qty = 1;
+                    detailForm.color = p.colors[0]||'';
+                    detailForm.size = p.sizes[0]||'';
+                    currentView.value = 'product';
+                    window.scrollTo(0,0);
+                };
+
+                const addToCartFromDetail = () => {
+                    const ex = cart.value.find(c=>c.id===selectedProduct.value.id && c.color===detailForm.color && c.size===detailForm.size);
+                    if(ex) ex.qty+=detailForm.qty; else cart.value.push({...selectedProduct.value, ...detailForm});
+                    showToast('Produk berhasil ditambahkan');
+                    isCartOpen.value = true;
+                };
+
+                const processCheckout = () => {
+                    isProcessing.value = true;
+                    setTimeout(() => {
+                        let msg = `Halo Admin ASR STORE, saya ingin melakukan pemesanan:%0A%0A👤 *Nama:* ${customer.name}%0A📍 *Alamat:* ${customer.address}%0A%0A🛒 *Rincian Pesanan:*%0A`;
+                        cart.value.forEach((x,i)=> msg+=`${i+1}. ${x.name} (${x.color}${x.size ? '/'+x.size:''}) - ${x.qty}pcs%0A`);
+                        msg+=`%0A💰 *Total Estimasi:* Rp ${format(cartTotal.value)}%0A%0AMohon info ketersediaan stok dan rekening pembayaran. Terima kasih.`;
+                        window.open(`https://wa.me/6285892767032?text=${msg}`);
+                        cart.value=[]; localStorage.removeItem('asr_cart'); isCartOpen.value=false; isProcessing.value=false;
+                    }, 1000);
+                };
+
+                const removeFromCart = (i) => cart.value.splice(i,1);
+                const toggleCart = () => isCartOpen.value = !isCartOpen.value;
+                const changeView = (v) => { currentView.value = v; window.scrollTo(0,0); };
+                const showToast = (m) => { toast.message=m; toast.show=true; setTimeout(()=>toast.show=false, 2000); };
+                const filterByCategory = (c) => { selectedCategory.value=c; changeView('shop'); };
+
+                return {
+                    currentView, loading, isCartOpen, products, cart, searchQuery, selectedCategory, selectedProduct, activeImage,
+                    detailForm, customer, toast, isProcessing, categories, filteredProducts, cartCount, cartTotal, latestProduct, faqItems, settings,
+                    format, viewProduct, addToCartFromDetail, processCheckout, removeFromCart, toggleCart, changeView, filterByCategory, getPageTitle
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
