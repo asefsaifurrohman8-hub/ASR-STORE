@@ -47,7 +47,7 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         
-        /* --- NEW CARD STYLE (CLEAN & COMPACT) --- */
+        /* --- CARD STYLE --- */
         .product-card {
             background: white;
             border-radius: 12px;
@@ -64,7 +64,6 @@
         }
         .card-image {
             position: relative;
-            /* Aspek rasio gambar dibuat square (1:1) atau sedikit landscape (4:3) agar pas */
             aspect-ratio: 1/1; 
             overflow: hidden;
             background-color: #f8f8f8;
@@ -72,7 +71,7 @@
         .card-image img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* Gambar memenuhi kotak */
+            object-fit: cover;
             transition: transform 0.5s ease;
         }
         .product-card:hover .card-image img { transform: scale(1.08); }
@@ -92,10 +91,10 @@
             width: 100%;
             overflow: hidden;
             border-radius: 20px;
-            aspect-ratio: 2/1; /* Rasio Banner 2:1 (Landscape) */
+            aspect-ratio: 2/1; /* Mobile Ratio */
         }
         @media (min-width: 768px) {
-            .carousel-container { aspect-ratio: 3/1; } /* Lebih lebar di desktop */
+            .carousel-container { aspect-ratio: 3/1; } 
         }
         .carousel-track {
             display: flex;
@@ -113,12 +112,42 @@
             object-fit: cover;
         }
 
-        /* Detail Image */
+        /* Detail Image Main */
         .detail-image-container {
             height: 380px; width: 100%; display: flex; align-items: center; justify-content: center; background-color: #FAFAFA;
         }
         .detail-image-container img { max-height: 100%; max-width: 100%; object-fit: contain; mix-blend-mode: multiply; }
-        .thumb-active { border-color: #3577F0; opacity: 1; transform: scale(0.95); }
+        
+        /* Thumbnail Scroll Fix */
+        .thumbnail-scroll-container {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding: 4px 16px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch; /* Smooth scroll iOS */
+        }
+        .thumbnail-item {
+            flex-shrink: 0; /* Mencegah gambar gepeng */
+            width: 64px; 
+            height: 64px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            overflow: hidden;
+            background: white;
+            transition: all 0.2s;
+        }
+        .thumbnail-item.active {
+            border-color: #3577F0;
+            transform: scale(0.95);
+            box-shadow: 0 4px 10px rgba(53, 119, 240, 0.2);
+        }
+        .thumbnail-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Kotak Sempurna */
+        }
 
         /* LEGAL DOCUMENTS STYLE */
         .legal-content { font-size: 0.95rem; color: #444; line-height: 1.8; text-align: left; }
@@ -170,34 +199,25 @@
             <div v-if="currentView === 'home'" class="animate-fade-in">
                 <div class="container mx-auto px-4 py-6">
                     
-                    <div class="carousel-container shadow-2xl mb-8 group cursor-pointer" @click="changeView('shop')">
+                    <div v-if="finalBanners.length > 0" class="carousel-container shadow-2xl mb-8 group cursor-pointer">
                         <div class="carousel-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
-                            <div class="carousel-slide bg-dark flex items-center justify-center relative">
-                                <img :src="settings.heroImage || 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=1200'" class="opacity-70">
-                                <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-6">
-                                    <h2 class="text-2xl md:text-4xl font-black mb-2 drop-shadow-lg">BIG SALE <span class="text-shopee">50% OFF</span></h2>
-                                    <p class="text-xs md:text-sm font-bold bg-white/20 backdrop-blur px-4 py-1 rounded-full border border-white/30">Hanya Hari Ini</p>
-                                </div>
-                            </div>
-                            <div class="carousel-slide bg-shopee flex items-center justify-center relative">
-                                <img src="https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?auto=format&fit=crop&w=1200" class="opacity-40 grayscale mix-blend-multiply">
-                                <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-6">
-                                    <h2 class="text-2xl md:text-4xl font-black mb-2 drop-shadow-lg uppercase">Gratis Ongkir</h2>
-                                    <p class="text-xs md:text-sm font-bold">Min. Belanja Rp0 Khusus Pembelian via Shopee</p>
-                                </div>
-                            </div>
-                            <div class="carousel-slide bg-primary flex items-center justify-center relative">
-                                <img src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=1200" class="opacity-60">
-                                <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-6">
-                                    <h2 class="text-2xl md:text-4xl font-black mb-2 drop-shadow-lg">NEW ARRIVAL</h2>
-                                    <button class="bg-white text-dark px-6 py-2 rounded-full font-bold text-xs mt-2 hover:scale-105 transition">Cek Sekarang</button>
+                            <div v-for="(banner, idx) in finalBanners" :key="idx" class="carousel-slide bg-gray-100 flex items-center justify-center relative">
+                                <img :src="banner.image" class="brightness-75">
+                                <div class="absolute inset-0 flex flex-col items-center justify-center text-white text-center p-6 z-10">
+                                    <h2 v-if="banner.title" class="text-2xl md:text-4xl font-black mb-2 drop-shadow-lg uppercase tracking-tight">{{ banner.title }}</h2>
+                                    <p v-if="banner.subtitle" class="text-xs md:text-sm font-bold bg-white/20 backdrop-blur px-4 py-1 rounded-full border border-white/30 mb-2">{{ banner.subtitle }}</p>
+                                    <button v-if="banner.btnText" @click="handleBannerClick(banner.link)" class="bg-white text-dark px-6 py-2 rounded-full font-bold text-xs mt-2 hover:scale-105 transition shadow-lg">{{ banner.btnText }}</button>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                            <div v-for="n in 3" :key="n" :class="currentSlide === n-1 ? 'bg-white w-6' : 'bg-white/50 w-2'" class="h-2 rounded-full transition-all duration-300"></div>
+                            <div v-for="(b, idx) in finalBanners" :key="idx" :class="currentSlide === idx ? 'bg-white w-6' : 'bg-white/50 w-2'" class="h-2 rounded-full transition-all duration-300"></div>
                         </div>
+                    </div>
+                    
+                    <div v-else class="carousel-container shadow-2xl mb-8 bg-gray-200 animate-pulse flex items-center justify-center rounded-2xl">
+                        <span class="text-gray-400 font-bold">Loading Promo...</span>
                     </div>
 
                     <div class="grid grid-cols-3 gap-3 mb-8">
@@ -353,10 +373,11 @@
                             <div class="detail-image-container">
                                 <img :src="activeImage" class="animate-fade-in">
                             </div>
-                            <div v-if="selectedProduct.images.length > 1" class="flex gap-3 overflow-x-auto no-scrollbar justify-center px-4 mt-6">
+
+                            <div v-if="selectedProduct.images.length > 1" class="thumbnail-scroll-container mt-6 no-scrollbar">
                                 <div v-for="img in selectedProduct.images" :key="img" @click="activeImage = img"
-                                     :class="['w-16 h-16 rounded-xl border-2 cursor-pointer p-1 bg-white transition shadow-sm', activeImage === img ? 'thumb-active' : 'thumb-inactive']">
-                                    <img :src="img" class="w-full h-full object-cover rounded-lg">
+                                     class="thumbnail-item" :class="{ 'active': activeImage === img }">
+                                    <img :src="img">
                                 </div>
                             </div>
                         </div>
@@ -639,7 +660,9 @@
                 const detailForm = reactive({ qty: 1, color: '', size: '' });
                 const customer = reactive({ name: '', address: '' });
                 const toast = reactive({ show: false, message: '' });
-                const settings = reactive({ logo: '', heroImage: '', aboutImage: '' });
+                
+                // SETTINGS & BANNERS UPDATED
+                const settings = reactive({ logo: '', banners: [] });
                 
                 // SLIDER STATE
                 const currentSlide = ref(0);
@@ -660,6 +683,11 @@
                 const cartTotal = computed(() => cart.value.reduce((a,b)=>a+(b.price*b.qty),0));
                 const format = (v) => new Intl.NumberFormat('id-ID').format(v);
                 const getPageTitle = (view) => ({ 'about': 'Tentang Kami', 'faq': 'FAQ', 'terms': 'S&K', 'privacy': 'Privasi', 'contact': 'Hubungi Kami', 'menu': 'Menu' }[view] || 'Info');
+                
+                // FILTER BANNERS: Only show banners with images
+                const finalBanners = computed(() => {
+                    return settings.banners ? settings.banners.filter(b => b.image) : [];
+                });
 
                 onMounted(() => {
                     const saved = localStorage.getItem('asr_cart');
@@ -669,8 +697,10 @@
                     
                     // START SLIDER
                     slideInterval = setInterval(() => {
-                        currentSlide.value = (currentSlide.value + 1) % 3; // 3 is total slides
-                    }, 4000); // Change every 4 seconds
+                        if(finalBanners.value.length > 0) {
+                            currentSlide.value = (currentSlide.value + 1) % finalBanners.value.length;
+                        }
+                    }, 4000); 
                 });
                 
                 watch(cart, (n) => localStorage.setItem('asr_cart', JSON.stringify(n)), {deep:true});
@@ -678,7 +708,23 @@
                 const fetchSettings = async () => {
                     try {
                         const docSnap = await getDoc(doc(db, "settings", "global"));
-                        if(docSnap.exists()) Object.assign(settings, docSnap.data());
+                        if(docSnap.exists()) {
+                            const data = docSnap.data();
+                            settings.logo = data.logo;
+                            // HANDLE NEW OBJECT STRUCTURE FROM ADMIN
+                            let bannersData = data.banners || [];
+                            
+                            // Compatibility check: if old format (string), convert to object
+                            settings.banners = bannersData.map(b => {
+                                if(typeof b === 'string') return { image: b, title: '', subtitle: '', btnText: '', link: '' };
+                                return b;
+                            });
+
+                            // Fallback: use old heroImage if banners empty
+                            if(settings.banners.length === 0 && data.heroImage) {
+                                settings.banners = [{ image: data.heroImage, title: 'ASR STORE', subtitle: 'Official Store', btnText: 'Belanja', link: '' }];
+                            }
+                        }
                     } catch(e) {}
                 };
 
@@ -724,12 +770,11 @@
                     }
                 };
 
-                // REFINED DYNAMIC PRICE LOGIC
                 const dynamicPrice = computed(() => {
                     if (!selectedProduct.value) return 0;
                     if (detailForm.size) {
                         const variants = selectedProduct.value.variants || [];
-                        const selectedVariant = variants.find(v => v.name === detailForm.size || v.size === detailForm.size);
+                        const selectedVariant = variants.find(v => v.name === detailForm.size);
                         if (selectedVariant && selectedVariant.price) {
                             return Number(selectedVariant.price);
                         }
@@ -741,7 +786,7 @@
                     if (!selectedProduct.value) return 0;
                     if (detailForm.size) {
                         const variants = selectedProduct.value.variants || [];
-                        const selectedVariant = variants.find(v => v.name === detailForm.size || v.size === detailForm.size);
+                        const selectedVariant = variants.find(v => v.name === detailForm.size);
                         if (selectedVariant && selectedVariant.originalPrice) {
                             return Number(selectedVariant.originalPrice);
                         } else if (selectedVariant && selectedVariant.price) {
@@ -804,9 +849,12 @@
                     }, 1000);
                 };
 
-                const openShopee = (link) => {
-                    if(link) window.open(link, '_blank');
-                }
+                const handleBannerClick = (link) => {
+                    if(link) {
+                        if(link.startsWith('http')) window.open(link, '_blank');
+                        else changeView('shop');
+                    }
+                };
 
                 const removeFromCart = (i) => cart.value.splice(i,1);
                 const toggleCart = () => isCartOpen.value = !isCartOpen.value;
@@ -817,8 +865,8 @@
                 return {
                     currentView, loading, isCartOpen, products, cart, searchQuery, selectedCategory, selectedProduct, activeImage,
                     detailForm, customer, toast, isProcessing, categories, filteredProducts, cartCount, cartTotal, latestProduct, faqItems, settings, relatedProducts,
-                    dynamicPrice, originalDynamicPrice, currentSlide,
-                    format, viewProduct, addToCartFromDetail, processCheckout, removeFromCart, toggleCart, changeView, filterByCategory, getPageTitle, openShopee
+                    dynamicPrice, originalDynamicPrice, currentSlide, finalBanners,
+                    format, viewProduct, addToCartFromDetail, processCheckout, removeFromCart, toggleCart, changeView, filterByCategory, getPageTitle, handleBannerClick
                 };
             }
         }).mount('#app');
